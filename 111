@@ -1,0 +1,117 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import org.apache.jmeter.config.Arguments;
+import org.apache.jmeter.protocol.java.sampler.JavaSamplerClient;
+import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.apache.jmeter.samplers.SampleResult;
+
+
+import java.sql.PreparedStatement;
+
+
+public class t_category implements JavaSamplerClient {
+	
+	PreparedStatement ps;
+	Connection conn;
+
+	public Arguments getDefaultParameters() {
+		Arguments am = new Arguments();
+		
+//		am.addArgument("id", "198");
+//		am.addArgument("name", "压测00001");
+//		am.addArgument("merchant_id", "2");
+//		am.addArgument("parent_id", "3");
+//		am.addArgument("sort", "1");
+//		am.addArgument("is_display", "1");
+//		am.addArgument("gmt_create", "2021-08-8 09:33:16");
+		
+		
+		am.addArgument("id", "");
+		am.addArgument("name", "");
+		am.addArgument("merchant_id", "");
+		am.addArgument("parent_id", "");
+		am.addArgument("sort", "");
+		am.addArgument("is_display", "");
+		
+		return am;
+	}
+	
+	//想当LR int
+	public void setupTest(JavaSamplerContext jsc) {
+		String userName = "xmdtest";
+		String password = "liNK!*6140";
+		String url = "jdbc:mysql://rm-bp1zojmxqprpok10h784.mysql.rds.aliyuncs.com:3306/mall_goods?serverTimezone=GMT%2b8&useSSL=true&Unicode=true&characterEncoding=utf8&autoReconnectForPools=true&allowMultiQueries=true";
+		String sql = "INSERT INTO `t_category` VALUES (?, ?, ?, ?, ?, ?, '2021-8-9 18:14:09','2021-8-9 18:14:09')";
+		try {
+			// 注册驱动，告诉Java连接哪个数据库
+			Class.forName("com.mysql.jdbc.Driver");
+			// 连接Mysql数据库，通过数据库的url ,用户名，密码
+			conn = DriverManager.getConnection(url, userName, password);
+			// 执行sql语句，但是在执行之前先进行sql语句编译，目的是为了提升性能，返回一个经过编译的sql对象
+			ps = conn.prepareStatement(sql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	//想当LR action
+	public SampleResult runTest(JavaSamplerContext jsc) {
+		SampleResult result = new  SampleResult();
+		result.setSampleLabel("jdbc");
+		result.sampleStart();
+		
+		String id = jsc.getParameter("id");
+		String name = jsc.getParameter("name");
+		String merchant_id = jsc.getParameter("merchant_id");
+		String parent_id = jsc.getParameter("parent_id");
+		String sort = jsc.getParameter("sort");
+		String is_display = jsc.getParameter("is_display");
+		//String gmt_create = jsc.getParameter("gmt_create");
+		
+		try {
+			ps.setString(1, id);
+			ps.setString(2, name);
+			ps.setString(3, merchant_id);
+			ps.setString(4, parent_id);
+			ps.setString(5, sort);
+			ps.setString(6, is_display);
+			//ps.setString(5, gmt_create);
+			// 真正执行sql语句
+			int rows = ps.executeUpdate();
+			if(rows==1){
+				result.setSuccessful(true);
+				System.out.println("pass");
+			}else{
+				result.setSuccessful(false);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		result.sampleEnd();
+		return result;
+	}
+	
+	//想当LR ent
+	public void teardownTest(JavaSamplerContext jsc) {
+		// 连接关闭
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void main(String[] args) {
+		t_category tojd = new t_category();
+		JavaSamplerContext jsc = new JavaSamplerContext(tojd.getDefaultParameters());
+		tojd.setupTest(jsc);
+		tojd.runTest(jsc);
+		tojd.teardownTest(jsc);
+	}
+
+}
